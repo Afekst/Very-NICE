@@ -62,14 +62,14 @@ class AdditiveCoupling(nn.Module):
         func.append(
             nn.Sequential(
                 nn.Linear(in_out_dim//2, mid_dim),
-                nn.ReLU()
+                nn.SiLU()
             )
         )
         for _ in range(hidden):
             func.append(
                 nn.Sequential(
                     nn.Linear(mid_dim, mid_dim),
-                    nn.ReLU()
+                    nn.SiLU()
                 )
             )
         func.append(
