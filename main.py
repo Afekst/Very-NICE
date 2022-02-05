@@ -70,7 +70,6 @@ def main(args):
     plot_loss(loss)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
     parser.add_argument('--cuda',
