@@ -202,16 +202,15 @@ class NICE(nn.Module):
         """
         z, log_det_J = self.f(x)
         log_det_J = log_det_J - torch.log(torch.tensor(256)) * self.in_out_dim
-        log_ll = torch.sum(self.prior.log_prob(z), dim=1)
+        log_ll = torch.sum(self.prior.log_prob(z.cpu()), dim=1).to(self.device)
         return log_ll + log_det_J
 
-    def sample(self, size):
+    def sample(self, size, z):
         """
         Generates samples
         :param size: number of samples to generate
         :return: samples from the data space X
         """
-        z = self.prior.sample((size, self.in_out_dim))
         z = z.to(self.device)
         x = self.f_inverse(z)
         return x
