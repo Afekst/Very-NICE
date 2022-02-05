@@ -75,3 +75,29 @@ class AdditiveCoupling(nn.Module):
             nn.Linear(mid_dim, in_out_dim//2)
         )
         return nn.Sequential(*func)
+
+
+class Scaling(nn.Module):
+    """
+    Scaling layer as described in paper
+    """
+    def __init__(self, dim):
+        """
+        C'tor for scaling layer
+        :param dim: in/out dimension
+        """
+        super(Scaling, self).__init__()
+        self.scale = nn.Parameter(
+            torch.zeros((1, dim)),
+            requires_grad=True
+        )
+
+    def forward(self, x, log_det_J):
+        eps = 1e-5
+        log_det_J += self.scale.sum() + eps
+        if self.training:
+            x *= torch.exp(self.scale)
+        else:
+            x *= torch.exp(-self.scale)
+
+        return x, log_det_J
