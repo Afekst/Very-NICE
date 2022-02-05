@@ -31,6 +31,7 @@ def train(flow, data_loader, optimizer, device, epochs):
 
 
 def generate(flow, sample_size, sample_shape, epoch):
+    flow = flow.cpu()
     flow.eval()
     with torch.no_grad():
         samples = flow.sample(sample_size)

@@ -211,7 +211,7 @@ class NICE(nn.Module):
         :param size: number of samples to generate
         :return: samples from the data space X
         """
-        z = self.prior.sample((size, self.in_out_dim)).to(self.device)
+        z = self.prior.sample((size, self.in_out_dim))
         z = z.to(self.device)
         x = self.f_inverse(z)
         return x
