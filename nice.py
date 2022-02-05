@@ -130,8 +130,7 @@ class NICE(nn.Module):
         self.scaling = Scaling(in_out_dim)
         self.device = device
 
-    @staticmethod
-    def _define_prior(prior):
+    def _define_prior(self, prior):
         """
         Define the prior distribution to be used
         :param prior: 'logistic' or 'gaussian'
@@ -146,7 +145,7 @@ class NICE(nn.Module):
             p = TransformedDistribution(
                 Uniform(0, 1),
                 [SigmoidTransform().inv,
-                 AffineTransform(loc=0., scale=1.)]
+                 AffineTransform(loc=torch.tensor(0.).to(self.device), scale=torch.tensor(1.).to(self.device))]
             )
         else:
             raise ValueError('Prior not implemented')
