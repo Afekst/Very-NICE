@@ -176,7 +176,7 @@ class NICE(nn.Module):
         :param z: tensor in latent space Z
         :return: transformed tensor in data space X
         """
-        x, _ = self.scaling(z)
+        x, _ = self.scaling(z, 0)
         for cpl in reversed(self.net):
             x, _ = cpl(x, 0)
         return x

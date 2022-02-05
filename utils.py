@@ -7,6 +7,13 @@ def add_noise(x):
     return x + torch.zeros_like(x).uniform_(0., 1. / 256.)
 
 
+def normalize_img(samples):
+    samples = samples.view(samples.size(0), -1)
+    samples -= samples.min(1, keepdim=True)[0]
+    samples /= samples.max(1, keepdim=True)[0]
+    samples = samples.view(-1, 1, 28, 28).cpu()
+
+
 def retrieve_dataset(dataset, batch_size):
     transform = transforms.Compose([
         transforms.ToTensor(),

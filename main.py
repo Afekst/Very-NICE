@@ -1,14 +1,16 @@
 import argparse
 import torch
+import torchvision
 import utils
 import nice
-from tqdm import tqdm, trange
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def train(flow, data_loader, optimizer, device, epochs):
-    flow.train()
     loss_list = []
     for epoch in range(1, epochs+1):
+        flow.train()
         running_loss = 0.0
         with tqdm(data_loader) as tepoch:
             tepoch.set_description(f'Epoch[{epoch}/{epochs}]')
@@ -23,7 +25,30 @@ def train(flow, data_loader, optimizer, device, epochs):
                 loss.backward()
                 optimizer.step()
                 tepoch.set_postfix(loss=loss.item())
+        generate(flow=flow, sample_size=64, sample_shape=[1, 28, 28], epoch=epoch)
         loss_list.append(running_loss/n_batch)
+    return loss_list
+
+
+def generate(flow, sample_size, sample_shape, epoch):
+    flow.eval()
+    with torch.no_grad():
+        samples = flow.sample(sample_size)
+        samples = samples.view(samples.size(0), -1)
+        samples -= samples.min(1, keepdim=True)[0]
+        samples /= samples.max(1, keepdim=True)[0]
+        samples = samples.view(-1, sample_shape[0], sample_shape[1], sample_shape[2]).cpu()
+        torchvision.utils.save_image(torchvision.utils.make_grid(samples),
+                                     './samples/' + 'samples ' + 'epoch%d.png' % epoch)
+
+
+def plot_loss(loss_list):
+    fig, ax = plt.subplots()
+    ax.plot(loss_list)
+    ax.set_title("LL Loss Vs. epochs")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    plt.savefig('./loss/' + f"{args.dataset}_loss.png")
 
 
 def main(args):
@@ -40,7 +65,9 @@ def main(args):
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters())
 
-    print(train(model, train_loader, optimizer, device, args.epochs))
+    loss = train(model, train_loader, optimizer, device, args.epochs)
+    plot_loss(loss)
+
 
 
 if __name__ == '__main__':
