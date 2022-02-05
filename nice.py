@@ -110,12 +110,6 @@ class Scaling(nn.Module):
         return x, log_det_J
 
 
-"""
-Standard logistic distribution.
-"""
-logistic = TransformedDistribution(Uniform(0, 1), [SigmoidTransform().inv, AffineTransform(loc=0., scale=1.)])
-
-
 class NICE(nn.Module):
     """
     Complete NICE model as described in paper
@@ -149,7 +143,11 @@ class NICE(nn.Module):
                 torch.tensor(1.)
             )
         elif prior == 'logistic':
-            p = logistic
+            p = TransformedDistribution(
+                Uniform(0, 1),
+                [SigmoidTransform().inv,
+                 AffineTransform(loc=0., scale=1.)]
+            )
         else:
             raise ValueError('Prior not implemented')
         return p
