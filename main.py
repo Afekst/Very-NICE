@@ -60,7 +60,8 @@ def main(args):
         coupling=args.coupling,
         in_out_dim=28**2,
         mid_dim=args.mid_dim,
-        hidden=args.hidden
+        hidden=args.hidden,
+        device=device
     )
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters())

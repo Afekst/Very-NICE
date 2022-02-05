@@ -114,7 +114,7 @@ class NICE(nn.Module):
     """
     Complete NICE model as described in paper
     """
-    def __init__(self, prior, coupling, in_out_dim, mid_dim, hidden):
+    def __init__(self, prior, coupling, in_out_dim, mid_dim, hidden, device):
         """
         C'tor for NICE model
         :param prior: 'logistic' or 'gaussian'
@@ -128,6 +128,7 @@ class NICE(nn.Module):
         self.in_out_dim = in_out_dim
         self.net = self._create_network(coupling, in_out_dim, mid_dim, hidden)
         self.scaling = Scaling(in_out_dim)
+        self.device = device
 
     @staticmethod
     def _define_prior(prior):
@@ -211,6 +212,7 @@ class NICE(nn.Module):
         :return: samples from the data space X
         """
         z = self.prior.sample((size, self.in_out_dim))
+        z = z.to(self.device)
         x = self.f_inverse(z)
         return x
 
