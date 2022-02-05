@@ -52,7 +52,7 @@ def plot_loss(loss_list):
 
 
 def main(args):
-    device = torch.device(f'cuda{args.cuda}' if torch.cuda.is_available() else 'cpu')
+    device = torch.device(f'cuda:{args.cuda}' if torch.cuda.is_available() else 'cpu')
     train_loader, test_loader = utils.retrieve_dataset(args.dataset, args.batch_size)
 
     model = nice.NICE(
