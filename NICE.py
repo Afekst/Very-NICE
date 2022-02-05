@@ -46,8 +46,6 @@ class AdditiveCoupling(nn.Module):
         x = x.reshape((B, D))
         return x, log_det_J
 
-
-
     @staticmethod
     def _create_network(in_out_dim, mid_dim, hidden):
         """
@@ -93,6 +91,12 @@ class Scaling(nn.Module):
         )
 
     def forward(self, x, log_det_J):
+        """
+        Forward pass
+        :param x: input tensor
+        :param log_det_J: log determinant of the Jacobian
+        :return: transformed tensor and updated log-determinant of Jacobian
+        """
         eps = 1e-5
         log_det_J += self.scale.sum() + eps
         if self.training:
@@ -101,3 +105,4 @@ class Scaling(nn.Module):
             x *= torch.exp(-self.scale)
 
         return x, log_det_J
+
