@@ -144,7 +144,7 @@ class NICE(nn.Module):
             )
         elif prior == 'logistic':
             p = TransformedDistribution(
-                Uniform(0, 1).to(self.device),
+                Uniform(0, 1),
                 [SigmoidTransform().inv,
                  AffineTransform(loc=0., scale=1.)]
             )
