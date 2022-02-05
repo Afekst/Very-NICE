@@ -130,8 +130,8 @@ class NICE(nn.Module):
         self.scaling = Scaling(in_out_dim)
         self.device = device
 
-    @staticmethod
-    def _define_prior(prior):
+
+    def _define_prior(self, prior):
         """
         Define the prior distribution to be used
         :param prior: 'logistic' or 'gaussian'
@@ -144,7 +144,7 @@ class NICE(nn.Module):
             )
         elif prior == 'logistic':
             p = TransformedDistribution(
-                Uniform(0, 1),
+                Uniform(0, 1).to(self.device),
                 [SigmoidTransform().inv,
                  AffineTransform(loc=0., scale=1.)]
             )

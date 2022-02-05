@@ -91,7 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--prior',
                         help='logistic or gaussian',
                         type=str,
-                        default='gaussian')
+                        default='logistic')
     parser.add_argument('--coupling',
                         help='number of coupling blocks',
                         type=int,
