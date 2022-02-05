@@ -124,13 +124,14 @@ class NICE(nn.Module):
         :param hidden: number of hidden layers in each coupling block
         """
         super(NICE, self).__init__()
-        self.device = device
         self.prior = self._define_prior(prior)
         self.in_out_dim = in_out_dim
         self.net = self._create_network(coupling, in_out_dim, mid_dim, hidden)
         self.scaling = Scaling(in_out_dim)
+        self.device = device
 
-    def _define_prior(self, prior):
+    @staticmethod
+    def _define_prior(prior):
         """
         Define the prior distribution to be used
         :param prior: 'logistic' or 'gaussian'
@@ -145,7 +146,7 @@ class NICE(nn.Module):
             p = TransformedDistribution(
                 Uniform(0, 1),
                 [SigmoidTransform().inv,
-                 AffineTransform(loc=torch.tensor(0.).to(self.device), scale=torch.tensor(1.).to(self.device))]
+                 AffineTransform(loc=0., scale=1.)]
             )
         else:
             raise ValueError('Prior not implemented')
@@ -210,7 +211,7 @@ class NICE(nn.Module):
         :param size: number of samples to generate
         :return: samples from the data space X
         """
-        z = self.prior.sample((size, self.in_out_dim))
+        z = self.prior.sample((size, self.in_out_dim)).to(self.device)
         z = z.to(self.device)
         x = self.f_inverse(z)
         return x
