@@ -124,11 +124,11 @@ class NICE(nn.Module):
         :param hidden: number of hidden layers in each coupling block
         """
         super(NICE, self).__init__()
+        self.device = device
         self.prior = self._define_prior(prior)
         self.in_out_dim = in_out_dim
         self.net = self._create_network(coupling, in_out_dim, mid_dim, hidden)
         self.scaling = Scaling(in_out_dim)
-        self.device = device
 
     def _define_prior(self, prior):
         """
