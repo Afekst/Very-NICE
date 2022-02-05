@@ -37,9 +37,9 @@ class AdditiveCoupling(nn.Module):
             x1, x2 = x[:, :, 0], x[:, :, 1]
 
         if self.training:
-            x2 += self.m(x1)
+            x2 = x2 + self.m(x1)
         else:
-            x2 -= self.m(x1)
+            x2 = x2 - self.m(x1)
 
         if self.mask_config:
             x = torch.stack((x2, x1), dim=2)
@@ -101,11 +101,11 @@ class Scaling(nn.Module):
         :return: transformed tensor and updated log-determinant of Jacobian
         """
         eps = 1e-5
-        log_det_J += self.scale.sum() + eps
+        log_det_J = log_det_J + self.scale.sum() + eps
         if self.training:
-            x *= torch.exp(self.scale)
+            x = x * torch.exp(self.scale)
         else:
-            x *= torch.exp(-self.scale)
+            x = x * torch.exp(-self.scale)
 
         return x, log_det_J
 
@@ -200,7 +200,7 @@ class NICE(nn.Module):
         :return: log-likelihood of input
         """
         z, log_det_J = self.f(x)
-        log_det_J -= torch.log(torch.tensor(256)) * self.in_out_dim
+        log_det_J = log_det_J - torch.log(torch.tensor(256)) * self.in_out_dim
         log_ll = torch.sum(self.prior.log_prob(z), dim=1)
         return log_ll + log_det_J
 
