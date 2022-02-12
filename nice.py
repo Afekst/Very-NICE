@@ -67,7 +67,6 @@ class AdditiveCoupling(nn.Module):
                 nn.Sequential(
                     nn.Linear(mid_dim, mid_dim),
                     nn.ReLU(),
-                    nn.BatchNorm1d(mid_dim)
                 )
             )
         func.append(
