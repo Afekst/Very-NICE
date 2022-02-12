@@ -60,9 +60,7 @@ class AdditiveCoupling(nn.Module):
         """
         func = nn.ModuleList([])
         func.append(
-            nn.Sequential(
-                nn.Linear(in_out_dim//2, mid_dim)
-            )
+            nn.Linear(in_out_dim//2, mid_dim)
         )
         for _ in range(hidden):
             func.append(
@@ -73,8 +71,10 @@ class AdditiveCoupling(nn.Module):
                 )
             )
         func.append(
-            nn.Linear(mid_dim, in_out_dim//2),
-            nn.Sigmoid()
+            nn.Sequential(
+                nn.Linear(mid_dim, in_out_dim // 2),
+                nn.Sigmoid()
+            )
         )
         return nn.Sequential(*func)
 
