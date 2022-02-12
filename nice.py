@@ -71,10 +71,7 @@ class AdditiveCoupling(nn.Module):
                 )
             )
         func.append(
-            nn.Sequential(
-                nn.Linear(mid_dim, in_out_dim // 2),
-                nn.Sigmoid()
-            )
+            nn.Linear(in_out_dim // 2, mid_dim)
         )
         return nn.Sequential(*func)
 
