@@ -61,15 +61,15 @@ class AdditiveCoupling(nn.Module):
         func = nn.ModuleList([])
         func.append(
             nn.Sequential(
-                nn.Linear(in_out_dim//2, mid_dim),
-                nn.Sigmoid()
+                nn.Linear(in_out_dim//2, mid_dim)
             )
         )
         for _ in range(hidden):
             func.append(
                 nn.Sequential(
                     nn.Linear(mid_dim, mid_dim),
-                    nn.Sigmoid()
+                    nn.ReLU(),
+                    nn.BatchNorm1d(mid_dim)
                 )
             )
         func.append(
