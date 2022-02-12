@@ -66,7 +66,7 @@ def main(args):
     )
     utils.print_parameters(model)
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     loss = train(model, train_loader, optimizer, device, args.epochs)
     plot_loss(loss)
