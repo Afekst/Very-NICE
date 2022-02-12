@@ -64,6 +64,7 @@ def main(args):
         hidden=args.hidden,
         device=device
     )
+    utils.print_parameters(model)
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters())
 
@@ -78,7 +79,7 @@ if __name__ == '__main__':
                         type=int,
                         default=0)
     parser.add_argument('--dataset',
-                        help='mnist of fashion-mnist',
+                        help='mnist or fashion-mnist',
                         type=str,
                         default='mnist')
     parser.add_argument('--batch_size',
