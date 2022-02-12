@@ -65,7 +65,7 @@ def main(args):
         device=device
     )
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
     loss = train(model, train_loader, optimizer, device, args.epochs)
     plot_loss(loss)
