@@ -40,7 +40,7 @@ def generate(flow, sample_size, sample_shape, epoch):
         samples = samples.view(-1, sample_shape[0], sample_shape[1], sample_shape[2])
         samples = samples.cpu() + 0.5
         torchvision.utils.save_image(torchvision.utils.make_grid(samples),
-                                     './samples/' + 'samples ' + 'epoch%d.png' % epoch)
+                                     './samples/' + 'samples ' + 'epoch %d.png' % epoch)
 
 
 def plot_loss(loss_list):
