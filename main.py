@@ -34,10 +34,11 @@ def generate(flow, sample_size, sample_shape, epoch):
     flow.eval()
     with torch.no_grad():
         samples = flow.sample(sample_size)
-        samples = samples.view(samples.size(0), -1)
-        samples -= samples.min(1, keepdim=True)[0]
-        samples /= samples.max(1, keepdim=True)[0]
-        samples = samples.view(-1, sample_shape[0], sample_shape[1], sample_shape[2]).cpu()
+        # samples = samples.view(samples.size(0), -1)
+        # samples -= samples.min(1, keepdim=True)[0]
+        # samples /= samples.max(1, keepdim=True)[0]
+        # samples = samples.view(-1, sample_shape[0], sample_shape[1], sample_shape[2])
+        samples = samples.cpu() + 0.5
         torchvision.utils.save_image(torchvision.utils.make_grid(samples),
                                      './samples/' + 'samples ' + 'epoch%d.png' % epoch)
 
