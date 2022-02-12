@@ -62,14 +62,14 @@ class AdditiveCoupling(nn.Module):
         func.append(
             nn.Sequential(
                 nn.Linear(in_out_dim//2, mid_dim),
-                nn.SiLU()
+                nn.ReLU()
             )
         )
         for _ in range(hidden):
             func.append(
                 nn.Sequential(
                     nn.Linear(mid_dim, mid_dim),
-                    nn.SiLU()
+                    nn.ReLU()
                 )
             )
         func.append(
@@ -101,7 +101,7 @@ class Scaling(nn.Module):
         :return: transformed tensor and updated log-determinant of Jacobian
         """
         eps = 1e-5
-        log_det_J = log_det_J + self.scale.sum() + eps
+        log_det_J = log_det_J - self.scale.sum() + 2 * self.scale.sum() * self.training
         if self.training:
             x = x * torch.exp(self.scale)
         else:
