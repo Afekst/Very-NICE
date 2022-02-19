@@ -117,7 +117,7 @@ class NICE(nn.Module):
         :param prior: 'logistic' or 'gaussian'
         :param coupling: number of coupling blocks
         :param in_out_dim: input/output dimension
-        :param mid_dim: number of units in each hidden layer of the coupling block
+        :param max_neurons: maximal number of hidden neurons
         :param hidden: number of hidden layers in each coupling block
         """
         super(NICE, self).__init__()
