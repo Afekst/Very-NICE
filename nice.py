@@ -111,7 +111,7 @@ class NICE(nn.Module):
     """
     Complete NICE model as described in paper
     """
-    def __init__(self, prior, coupling, in_out_dim, mid_dim, hidden, device):
+    def __init__(self, prior, coupling, in_out_dim, max_neurons, hidden, device):
         """
         C'tor for NICE model
         :param prior: 'logistic' or 'gaussian'
@@ -123,7 +123,7 @@ class NICE(nn.Module):
         super(NICE, self).__init__()
         self.prior = self._define_prior(prior)
         self.in_out_dim = in_out_dim
-        self.net = self._create_network(coupling, in_out_dim, mid_dim, hidden)
+        self.net = self._create_network(coupling, in_out_dim, max_neurons, hidden)
         self.scaling = Scaling(in_out_dim)
         self.device = device
 
@@ -150,7 +150,7 @@ class NICE(nn.Module):
         return p
 
     @staticmethod
-    def _create_network(coupling, in_out_dim, mid_dim, hidden):
+    def _create_network(coupling, in_out_dim, max_neurons, hidden):
         """
         Create NN consist of AdditiveCoupling blocks
         :param coupling: number of coupling blocks
@@ -159,6 +159,7 @@ class NICE(nn.Module):
         :param hidden: number of hidden layers in each coupling block
         :return: list of coupling blocks
         """
+        mid_dim = int(np.sqrt(max_neurons/(coupling*hidden)))
         func = nn.ModuleList([
             AdditiveCoupling(in_out_dim=in_out_dim,
                              mid_dim=mid_dim,

@@ -60,7 +60,7 @@ def main(args):
         prior=args.prior,
         coupling=args.coupling,
         in_out_dim=28**2,
-        mid_dim=args.mid_dim,
+        max_neurons=args.max_neurons,
         hidden=args.hidden,
         device=device
     )
@@ -98,10 +98,10 @@ if __name__ == '__main__':
                         help='number of coupling blocks',
                         type=int,
                         default=4)
-    parser.add_argument('--mid_dim',
-                        help='number of units in each hidden layer of the coupling block',
+    parser.add_argument('--max_neurons',
+                        help='maximal number of hidden neurons',
                         type=int,
-                        default=1000)
+                        default=1e6)
     parser.add_argument('--hidden',
                         help='number of hidden layers in each coupling block',
                         type=int,
