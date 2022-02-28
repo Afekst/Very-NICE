@@ -3,14 +3,14 @@ import torch.nn as nn
 from torch.distributions.transforms import Transform, SigmoidTransform, AffineTransform
 from torch.distributions import Uniform, TransformedDistribution
 import numpy as np
-from layers import AdditiveCoupling, Scaling
+from layers import VeryAdditiveCoupling, Scaling
 
 
-class NICE(nn.Module):
+class VeryNICE(nn.Module):
     """
     Complete VeryNICE model as described in paper
     """
-    def __init__(self, prior, coupling, in_out_dim, max_neurons, hidden, device):
+    def __init__(self, prior, coupling, in_out_dim, max_neurons, partitions, hidden, device):
         """
         C'tor for VeryNICE model
         :param prior: 'logistic' or 'gaussian'
@@ -19,10 +19,10 @@ class NICE(nn.Module):
         :param max_neurons: maximal number of hidden neurons
         :param hidden: number of hidden layers in each coupling block
         """
-        super(NICE, self).__init__()
+        super(VeryNICE, self).__init__()
         self.prior = self._define_prior(prior)
         self.in_out_dim = in_out_dim
-        self.net = self._create_network(coupling, in_out_dim, max_neurons, hidden)
+        self.net = self._create_network(coupling, in_out_dim, max_neurons, hidden, partitions)
         self.scaling = Scaling(in_out_dim)
         self.device = device
 
@@ -49,7 +49,7 @@ class NICE(nn.Module):
         return p
 
     @staticmethod
-    def _create_network(coupling, in_out_dim, max_neurons, hidden):
+    def _create_network(coupling, in_out_dim, max_neurons, hidden, partitions):
         """
         Create NN consist of AdditiveCoupling blocks
         :param coupling: number of coupling blocks
@@ -58,13 +58,13 @@ class NICE(nn.Module):
         :param hidden: number of hidden layers in each coupling block
         :return: list of coupling blocks
         """
-        mid_dim = int(np.sqrt(max_neurons/(coupling*hidden)))
+        mid_dim = int(np.sqrt(max_neurons/(coupling*hidden))/partitions*coupling)
         func = nn.ModuleList([
-            AdditiveCoupling(in_out_dim=in_out_dim,
-                             mid_dim=mid_dim,
-                             hidden=hidden,
-                             mask_config=(i+1) % 2)
-            for i in range(coupling)
+            VeryAdditiveCoupling(in_out_dim=in_out_dim,
+                                mid_dim=mid_dim,
+                                hidden=hidden,
+                                partitions=partitions)
+            for _ in range(coupling)
         ])
         return func
 

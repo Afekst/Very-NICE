@@ -3,6 +3,7 @@ import torch
 import torchvision
 import utils
 import nice
+import verynice
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -56,11 +57,20 @@ def main(args):
     device = torch.device(f'cuda:{args.cuda}' if torch.cuda.is_available() else 'cpu')
     train_loader, test_loader = utils.retrieve_dataset(args.dataset, args.batch_size)
 
-    model = nice.NICE(
+    # model = nice.NICE(
+    #     prior=args.prior,
+    #     coupling=args.coupling,
+    #     in_out_dim=28**2,
+    #     max_neurons=args.max_neurons,
+    #     hidden=args.hidden,
+    #     device=device
+    # )
+    model = verynice.VeryNICE(
         prior=args.prior,
         coupling=args.coupling,
         in_out_dim=28**2,
         max_neurons=args.max_neurons,
+        partitions=8,
         hidden=args.hidden,
         device=device
     )

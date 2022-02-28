@@ -1,5 +1,79 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
+
+class VeryAdditiveCoupling(nn.Module):
+    """
+    Very Nice coupling layer
+    """
+    def __init__(self, in_out_dim, mid_dim, hidden, partitions):
+        """
+        C'tor for a Very Nice coupling layer
+        :param in_out_dim: input/output dimensions
+        :param mid_dim: number of units in a hidden layer
+        :param hidden: number of hidden layers
+        :param partitions: number of partitions
+        """
+        super(VeryAdditiveCoupling, self).__init__()
+        if in_out_dim % partitions:
+            raise ValueError('input output dimension must be divisible by the number of partitions')
+
+        self.ts = self._create_networks(in_out_dim, mid_dim, hidden, partitions)
+        self.partitions = partitions
+        self.D = self._degeneration_matrix(partitions)
+        M = torch.randn_like(self.D, dtype=torch.float32)
+        self.M = nn.Parameter(M, requires_grad=True)
+
+    def forward(self, x, log_det_J):
+        [B, D] = list(x.size())
+        step = D // self.partitions
+        txs = []
+        for i in range(self.partitions):
+            part = x[:, i*step:(i+1)*step]
+            txs.append(self.ts[i](part))
+        txs = torch.stack(txs, dim=1)
+
+        transformation = self.M * self.D
+        transformed = torch.zeros_like(txs)
+        for i in range(B):
+            transformed[i, :, :] = transformation @ txs[i, :, :]
+
+        transformed = torch.reshape(transformed, (B, D))
+        if self.training:
+            out = x + transformed
+        else:
+            out = x - transformed
+
+        return out, log_det_J
+
+
+    @staticmethod
+    def _create_networks(in_out_dim, mid_dim, hidden, partitions):
+        nets = nn.ModuleList([])
+        for _ in range(partitions):
+            func = nn.ModuleList([])
+            func.append(
+                nn.Linear(in_out_dim // partitions, mid_dim)
+            )
+            for _ in range(hidden):
+                func.append(
+                    nn.Sequential(
+                        nn.Linear(mid_dim, mid_dim),
+                        nn.ReLU(),
+                    )
+                )
+            func.append(
+                nn.Linear(mid_dim, in_out_dim // partitions),
+            )
+            nets.append(nn.Sequential(*func))
+        return nets
+
+    @staticmethod
+    def _degeneration_matrix(partitions):
+        D = np.tril(np.ones((partitions, partitions), dtype='float32'))
+        np.fill_diagonal(D, 0)
+        return torch.from_numpy(D)
 
 
 class AdditiveCoupling(nn.Module):
