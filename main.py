@@ -76,7 +76,7 @@ def main(args):
     )
     utils.print_parameters(model)
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     loss = train(model, train_loader, optimizer, device, args.epochs)
     plot_loss(loss)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_neurons',
                         help='maximal number of hidden neurons',
                         type=int,
-                        default=20e6)
+                        default=10e6)
     parser.add_argument('--hidden',
                         help='number of hidden layers in each coupling block',
                         type=int,
