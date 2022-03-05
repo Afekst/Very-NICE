@@ -7,7 +7,7 @@ class VeryAdditiveCoupling(nn.Module):
     """
     Very Nice coupling layer
     """
-    def __init__(self, in_out_dim, mid_dim, hidden, partitions):
+    def __init__(self, in_out_dim, mid_dim, hidden, partitions, mask_config, device):
         """
         C'tor for a Very Nice coupling layer
         :param in_out_dim: input/output dimensions
@@ -19,6 +19,8 @@ class VeryAdditiveCoupling(nn.Module):
         if in_out_dim % partitions:
             raise ValueError('input output dimension must be divisible by the number of partitions')
 
+        self.device = device
+        self.mask_config = mask_config
         self.ts = self._create_networks(in_out_dim, mid_dim, hidden, partitions)
         self.partitions = partitions
         self.D = self._degeneration_matrix(partitions)
@@ -29,7 +31,11 @@ class VeryAdditiveCoupling(nn.Module):
         [B, D] = list(x.size())
         step = D // self.partitions
         txs = []
-        for i in range(self.partitions):
+        if self.mask_config:
+            iter = reversed(range(self.partitions))
+        else:
+            iter = range(self.partitions)
+        for i in iter:
             part = x[:, i*step:(i+1)*step]
             txs.append(self.ts[i](part))
         txs = torch.stack(txs, dim=1)
@@ -69,11 +75,10 @@ class VeryAdditiveCoupling(nn.Module):
             nets.append(nn.Sequential(*func))
         return nets
 
-    @staticmethod
-    def _degeneration_matrix(partitions):
+    def _degeneration_matrix(self, partitions):
         D = np.tril(np.ones((partitions, partitions), dtype='float32'))
         np.fill_diagonal(D, 0)
-        return torch.from_numpy(D)
+        return torch.from_numpy(D).to(self.device)
 
 
 class AdditiveCoupling(nn.Module):

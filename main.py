@@ -111,7 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_neurons',
                         help='maximal number of hidden neurons',
                         type=int,
-                        default=1e6)
+                        default=20e6)
     parser.add_argument('--hidden',
                         help='number of hidden layers in each coupling block',
                         type=int,

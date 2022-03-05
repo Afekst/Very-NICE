@@ -20,11 +20,12 @@ class VeryNICE(nn.Module):
         :param hidden: number of hidden layers in each coupling block
         """
         super(VeryNICE, self).__init__()
+        self.device = device
         self.prior = self._define_prior(prior)
         self.in_out_dim = in_out_dim
         self.net = self._create_network(coupling, in_out_dim, max_neurons, hidden, partitions)
         self.scaling = Scaling(in_out_dim)
-        self.device = device
+
 
     @staticmethod
     def _define_prior(prior):
@@ -48,8 +49,7 @@ class VeryNICE(nn.Module):
             raise ValueError('Prior not implemented')
         return p
 
-    @staticmethod
-    def _create_network(coupling, in_out_dim, max_neurons, hidden, partitions):
+    def _create_network(self, coupling, in_out_dim, max_neurons, hidden, partitions):
         """
         Create NN consist of AdditiveCoupling blocks
         :param coupling: number of coupling blocks
@@ -61,10 +61,12 @@ class VeryNICE(nn.Module):
         mid_dim = int(np.sqrt(max_neurons/(coupling*hidden))/partitions*coupling)
         func = nn.ModuleList([
             VeryAdditiveCoupling(in_out_dim=in_out_dim,
-                                mid_dim=mid_dim,
-                                hidden=hidden,
-                                partitions=partitions)
-            for _ in range(coupling)
+                                 mid_dim=mid_dim,
+                                 hidden=hidden,
+                                 partitions=partitions,
+                                 mask_config=i % 2,
+                                 device=self.device)
+            for i in range(coupling)
         ])
         return func
 
