@@ -3,6 +3,83 @@ import torch.nn as nn
 import numpy as np
 
 
+# class VeryAdditiveCoupling(nn.Module):
+#     """
+#     Very Nice coupling layer
+#     """
+#     def __init__(self, in_out_dim, mid_dim, hidden, partitions, mask_config, device):
+#         """
+#         C'tor for a Very Nice coupling layer
+#         :param in_out_dim: input/output dimensions
+#         :param mid_dim: number of units in a hidden layer
+#         :param hidden: number of hidden layers
+#         :param partitions: number of partitions
+#         """
+#         super(VeryAdditiveCoupling, self).__init__()
+#         if in_out_dim % partitions:
+#             raise ValueError('input output dimension must be divisible by the number of partitions')
+#
+#         self.device = device
+#         self.mask_config = mask_config
+#         self.ts = self._create_networks(in_out_dim, mid_dim, hidden, partitions)
+#         self.partitions = partitions
+#         self.D = self._degeneration_matrix(partitions)
+#         M = torch.randn_like(self.D, dtype=torch.float32)
+#         self.M = nn.Parameter(M, requires_grad=True)
+#
+#     def forward(self, x, log_det_J):
+#         # if self.mask_config:
+#         #      x = torch.fliplr(x)
+#         [B, D] = list(x.size())
+#         step = D // self.partitions
+#         txs = []
+#         for i in range(self.partitions):
+#             part = x[:, range(i, D, self.partitions)]
+#             txs.append(self.ts[i](part))
+#         # if self.mask_config:
+#         #     txs.reverse()
+#         txs = torch.stack(txs, dim=1)
+#
+#         transformation = self.M * self.D
+#         transformed = torch.zeros_like(txs)
+#         for i in range(B):
+#             if False:  # self.mask_config:
+#                 txs[i, :, :] = txs[i, :, :]
+#             transformed[i, :, :] = transformation @ txs[i, :, :]
+#         transformed = torch.reshape(transformed, (B, D))
+#         if self.training:
+#             out = x + transformed
+#         else:
+#             out = x - transformed
+#
+#         return out, log_det_J
+#
+#
+#     @staticmethod
+#     def _create_networks(in_out_dim, mid_dim, hidden, partitions):
+#         nets = nn.ModuleList([])
+#         for _ in range(partitions):
+#             func = nn.ModuleList([])
+#             func.append(
+#                 nn.Linear(in_out_dim // partitions, mid_dim)
+#             )
+#             for _ in range(hidden):
+#                 func.append(
+#                     nn.Sequential(
+#                         nn.Linear(mid_dim, mid_dim),
+#                         nn.ReLU(),
+#                     )
+#                 )
+#             func.append(
+#                 nn.Linear(mid_dim, in_out_dim // partitions),
+#             )
+#             nets.append(nn.Sequential(*func))
+#         return nets
+#
+#     def _degeneration_matrix(self, partitions):
+#         D = np.tril(np.ones((partitions, partitions), dtype='float32'))
+#         np.fill_diagonal(D, 0)
+#         return torch.from_numpy(D).to(self.device)
 class VeryAdditiveCoupling(nn.Module):
     """
     Very Nice coupling layer
@@ -29,29 +106,36 @@ class VeryAdditiveCoupling(nn.Module):
 
     def forward(self, x, log_det_J):
         [B, D] = list(x.size())
-        step = D // self.partitions
+        x_split = x.reshape((B, D//self.partitions, self.partitions))
+
+        xs = []
         txs = []
         if self.mask_config:
-            iter = reversed(range(self.partitions))
+            iterator = reversed(range(self.partitions))
         else:
-            iter = range(self.partitions)
-        for i in iter:
-            part = x[:, i*step:(i+1)*step]
-            txs.append(self.ts[i](part))
+            iterator = range(self.partitions)
+        for i in iterator:
+            xs.append(x_split[:, :, i])
+        for i in range(self.partitions):
+            txs.append(self.ts[i](xs[i]))
         txs = torch.stack(txs, dim=1)
+        xs = torch.stack(xs, dim=1)
 
-        transformation = self.M * self.D
-        transformed = torch.zeros_like(txs)
-        for i in range(B):
-            transformed[i, :, :] = transformation @ txs[i, :, :]
-
-        transformed = torch.reshape(transformed, (B, D))
         if self.training:
-            out = x + transformed
+            M_tag = self.M * self.D
         else:
-            out = x - transformed
+            I = torch.eye(self.partitions, device=self.M.device)
+            M_tag = torch.inverse(self.M * self.D + I) - I
+        out = xs + M_tag @ txs
+
+        if self.mask_config:
+            out = torch.fliplr(out)
+        out = torch.transpose(out, 1, 2)
+        out = out.reshape((B, D))
 
         return out, log_det_J
+
+
 
 
     @staticmethod

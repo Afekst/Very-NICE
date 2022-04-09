@@ -58,18 +58,18 @@ def main(args):
     train_loader, test_loader = utils.retrieve_dataset(args.dataset, args.batch_size)
 
     # model = nice.NICE(
-    #     prior=args.prior,
-    #     coupling=args.coupling,
-    #     in_out_dim=28**2,
-    #     max_neurons=args.max_neurons,
-    #     hidden=args.hidden,
-    #     device=device
+    #    prior=args.prior,
+    #    coupling=args.coupling,
+    #    in_out_dim=28**2,
+    #    max_neurons=args.max_neurons,
+    #    hidden=args.hidden,
+    #    device=device
     # )
     model = verynice.VeryNICE(
         prior=args.prior,
         coupling=args.coupling,
         in_out_dim=28**2,
-        max_neurons=args.max_neurons,
+        max_neurons=args.max_neurons/10,
         partitions=8,
         hidden=args.hidden,
         device=device
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--cuda',
                         help='cuda device index',
                         type=int,
-                        default=0)
+                        default=3)
     parser.add_argument('--dataset',
                         help='mnist or fashion-mnist',
                         type=str,

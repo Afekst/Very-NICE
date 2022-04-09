@@ -61,10 +61,10 @@ class VeryNICE(nn.Module):
         mid_dim = int(np.sqrt(max_neurons/(coupling*hidden))/partitions*coupling)
         func = nn.ModuleList([
             VeryAdditiveCoupling(in_out_dim=in_out_dim,
-                                 mid_dim=mid_dim,
+                                 mid_dim=1000,
                                  hidden=hidden,
                                  partitions=partitions,
-                                 mask_config=i % 2,
+                                 mask_config=(i+1) % 2,
                                  device=self.device)
             for i in range(coupling)
         ])
