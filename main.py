@@ -7,7 +7,7 @@ import verynice
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-
+dim_size = 28
 def train(flow, data_loader, optimizer, device, epochs):
     loss_list = []
     for epoch in range(1, epochs+1):
@@ -18,7 +18,10 @@ def train(flow, data_loader, optimizer, device, epochs):
             tepoch.set_postfix(loss=float('inf'))
             for n_batch, data in enumerate(tepoch, 1):
                 optimizer.zero_grad()
-                data, _ = data
+                try:
+                    data, _ = data
+                except:
+                    pass
                 data = data.to(device)
                 data = data.view(data.shape[0], data.shape[1] * data.shape[2] * data.shape[3])
                 loss = -flow(data).mean()
@@ -26,7 +29,7 @@ def train(flow, data_loader, optimizer, device, epochs):
                 loss.backward()
                 optimizer.step()
                 tepoch.set_postfix(loss=loss.item())
-        generate(flow=flow, sample_size=64, sample_shape=[1, 28, 28], epoch=epoch)
+        generate(flow=flow, sample_size=64, sample_shape=[1, dim_size, dim_size], epoch=epoch)
         loss_list.append(running_loss/n_batch)
     return loss_list
 
@@ -68,15 +71,14 @@ def main(args):
     model = verynice.VeryNICE(
         prior=args.prior,
         coupling=args.coupling,
-        in_out_dim=28**2,
-        max_neurons=args.max_neurons/10,
-        partitions=8,
+        in_out_dim=dim_size**2,
+        partitions=args.partitions,
         hidden=args.hidden,
         device=device
     )
     utils.print_parameters(model)
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=5e-4)
 
     loss = train(model, train_loader, optimizer, device, args.epochs)
     plot_loss(loss)
@@ -89,7 +91,7 @@ if __name__ == '__main__':
                         type=int,
                         default=3)
     parser.add_argument('--dataset',
-                        help='mnist or fashion-mnist',
+                        help='mnist or fashion-mnist or high-res-mnist',
                         type=str,
                         default='mnist')
     parser.add_argument('--batch_size',
@@ -107,7 +109,7 @@ if __name__ == '__main__':
     parser.add_argument('--coupling',
                         help='number of coupling blocks',
                         type=int,
-                        default=4)
+                        default=16)
     parser.add_argument('--max_neurons',
                         help='maximal number of hidden neurons',
                         type=int,
@@ -115,6 +117,10 @@ if __name__ == '__main__':
     parser.add_argument('--hidden',
                         help='number of hidden layers in each coupling block',
                         type=int,
-                        default=5)
+                        default=3)
+    parser.add_argument('--partitions',
+                        help='number of partitions in each VeryAdditiveLayer',
+                        type=int,
+                        default=4)
     args = parser.parse_args()
     main(args)
