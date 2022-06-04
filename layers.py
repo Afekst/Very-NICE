@@ -3,57 +3,6 @@ import torch.nn as nn
 import numpy as np
 
 
-# class VeryAdditiveCoupling(nn.Module):
-#     """
-#     Very Nice coupling layer
-#     """
-#     def __init__(self, in_out_dim, mid_dim, hidden, partitions, mask_config, device):
-#         """
-#         C'tor for a Very Nice coupling layer
-#         :param in_out_dim: input/output dimensions
-#         :param mid_dim: number of units in a hidden layer
-#         :param hidden: number of hidden layers
-#         :param partitions: number of partitions
-#         """
-#         super(VeryAdditiveCoupling, self).__init__()
-#         if in_out_dim % partitions:
-#             raise ValueError('input output dimension must be divisible by the number of partitions')
-#
-#         self.device = device
-#         self.mask_config = mask_config
-#         self.ts = self._create_networks(in_out_dim, mid_dim, hidden, partitions)
-#         self.partitions = partitions
-#         self.D = self._degeneration_matrix(partitions)
-#         M = torch.randn_like(self.D, dtype=torch.float32)
-#         self.M = nn.Parameter(M, requires_grad=True)
-#
-#     def forward(self, x, log_det_J):
-#         [B, D] = list(x.size())
-#         x_split = x.reshape((B, D//self.partitions, self.partitions))
-#         if self.mask_config:
-#             x_split = x_split.flip(-1)
-#
-#         txs = []
-#         for i in range(self.partitions):
-#             txs.append(self.ts[i](x_split[:, :, i]))
-#         txs = torch.stack(txs, dim=1)
-#         xs = x_split.transpose(1, 2)
-#
-#         if self.training:
-#             M_tag = self.M * self.D
-#         else:
-#             I = torch.eye(self.partitions, device=self.M.device)
-#             M_tag = torch.inverse(self.M * self.D + I) - I
-#         out = xs + M_tag @ txs
-#
-#         out = torch.transpose(out, 1, 2)
-#         if self.mask_config:
-#             out = out.flip(-1)
-#
-#         out = out.reshape((B, D))
-#
-#         return out, log_det_J
-
 class VeryAdditiveCoupling(nn.Module):
     """
     Very Nice coupling layer
@@ -80,48 +29,24 @@ class VeryAdditiveCoupling(nn.Module):
 
     def forward(self, x, log_det_J):
         [B, D] = list(x.size())
-        x_split = x.reshape((B, D//4, 4))
+        x_split = x.reshape((B, D//self.partitions, self.partitions))
+        x_split = torch.roll(x_split, self.mask_config, -1)
 
-        xs = []
         txs = []
-
-        if self.mask_config:
-            x0 = x_split[:, :, 3]
-            x1 = x_split[:, :, 2]
-            x2 = x_split[:, :, 1]
-            x3 = x_split[:, :, 0]
-        else:
-            x0 = x_split[:, :, 0]
-            x1 = x_split[:, :, 1]
-            x2 = x_split[:, :, 2]
-            x3 = x_split[:, :, 3]
-
-        tx0 = self.ts[0](x0)
-        tx1 = self.ts[1](x1)
-        tx2 = self.ts[2](x2)
-        tx3 = self.ts[3](x3)
-
+        for i in range(self.partitions):
+            txs.append(self.ts[i](x_split[:, :, i]))
+        txs = torch.stack(txs, dim=1)
+        xs = x_split.transpose(1, 2)
 
         if self.training:
-            o0 = x0
-            o1 = tx0 + x1
-            o2 = tx1 + tx0 + x2
-            o3 = tx2 + tx1 + tx0 + x3
+            M_tag = self.M * self.D
         else:
-            o0 = x0
-            o1 = x1 - tx0
-            o2 = x2 - tx1 - tx0
-            o3 = x3 - tx2 - tx1 - tx0
+            I = torch.eye(self.partitions, device=self.M.device)
+            M_tag = torch.inverse(self.M * self.D + I) - I
+        out = xs + M_tag @ txs
 
-        if self.mask_config:
-            out = torch.stack((o3, o2, o1, o0), dim=-1)
-        else:
-            out = torch.stack((o0, o1, o2, o3), dim=-1)
-
-        # out = torch.transpose(out, 1, 2)
-        # if self.mask_config:
-        #     out = out.flip(-1)
-
+        out = torch.transpose(out, 1, 2)
+        out = torch.roll(out, -self.mask_config, -1)
         out = out.reshape((B, D))
 
         return out, log_det_J

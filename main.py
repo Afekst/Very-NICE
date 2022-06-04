@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('--hidden',
                         help='number of hidden layers in each coupling block',
                         type=int,
-                        default=3)
+                        default=5)
     parser.add_argument('--partitions',
                         help='number of partitions in each VeryAdditiveLayer',
                         type=int,

@@ -63,7 +63,7 @@ class VeryNICE(nn.Module):
                                  mid_dim=500,
                                  hidden=hidden,
                                  partitions=partitions,
-                                 mask_config=(i+1) % 2,
+                                 mask_config=(i+1) % partitions,
                                  device=self.device)
             for i in range(coupling)
         ])
